@@ -94,9 +94,8 @@
 	const executionId = searchParams.execution_id; // The execution ID of the Make execution
 	const makeWebhookUrl = searchParams.make_polling_url; // Make Webhook URL for fetching tracking URL
 
-    if (!submission_id || !executionId || !makeWebhookUrl) {
+    if (!submissionId || !executionId || !makeWebhookUrl) {
         fail();
-        return;
     }
     else {
         startPollingForRedirectUrl();
