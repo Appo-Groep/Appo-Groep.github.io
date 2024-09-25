@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        @property --percentage {
+            initial-value: 0%;
+            inherits: false;
+            syntax: '<percentage>';
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .content {
+            text-align: center;
+        }
+        .loader {
+            --percentage: 0%;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#3498db 0% var(--percentage), #f3f3f3 0% 0%);
+            transition: --percentage 5s linear;
+            margin: 0 auto 20px;
+        }
+        .loaded {
+            --percentage: 100%;
+        }
+        p {
+            font-size: 24px;
+            color: #333;
+        }
+        p.fail {
+            color: #F33;
+        }
+        p.hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div id="loader" class="loader"></div>
+        <p id="uitleg-text">
+            Gelijk een ophaal afspraak voor uw pomp maken? Een moment geduld.
+        </p>
+        <p class="fail hide">
+            <b>Sorry!</b>
+        </p>
+        <p class="fail hide">
+            Het is nog niet mogelijk een afspraak in te plannen.
+        </p>
+        <p class="fail hide">
+            Houdt uw email in de gaten om een afspraak in te plannen.
+        </p>
+    </div>
+</body>
+
+<script type="text/javascript">
+	var loadingInterval;
+    function startLoading() {
+		loadingInterval = setInterval(() => {
+			const el = document.getElementById('uitleg-text');
+		
+			if (el.innerText.endsWith('...')) {
+				el.innerText = el.innerText.substring(0, el.innerText.length - 2);
+			}
+			else {
+				el.innerText += '.';
+			}
+		}, 1000);
+
+		setTimeout(() => {
+			const loader = document.getElementById('loader');
+
+			loader.className = 'loader loaded';
+		}, 1);
+	}
+
+	startLoading();
+
+	const submissionId = '{{1.submission_id}}'; // The submission ID of the jotform submission
+	const executionId = '{{executionId}}'; // The execution ID of the jortform submission Make execution
+	const makeWebhookUrl = '{{var.input.Make_polling_url}}'; // Make Webhook URL for fetching tracking URL
+
+	startPollingForRedirectUrl();
+
+    const maxAttempts = 3;
+    let currentAttempt = 0;
+
+	function startPollingForRedirectUrl() {
+		setTimeout(pollForRedirectUrl, 2500);
+	}
+
+	function pollForRedirectUrl() {
+        currentAttempt++;
+        console.log('Poll attempt: ' + currentAttempt);
+		fetch(makeWebhookUrl, {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ submissionId, executionId })
+		}).then(async (response) => {
+            const json = await response.text();
+            const data = JSON.parse(json);
+			if (data.tracking_url) {
+				redirect(data.tracking_url);
+			}
+			else if (currentAttempt < maxAttempts) {
+				startPollingForRedirectUrl();
+			}
+            else fail();
+		}).catch((err) => {
+			console.error('Failed to fetch redirect URL!', err);
+			if (currentAttempt < maxAttempts) {
+				startPollingForRedirectUrl();
+			}
+            else fail();
+		});
+	}
+
+	function redirect(url) {
+		window.location.href = url;
+	}
+
+    function fail() {
+        clearInterval(loadingInterval);
+        console.log('this is taking longer than usual... refer to email for track&trace.');
+        document.getElementById('uitleg-text').className = "hide";
+        var fails = document.getElementsByClassName('fail');
+        for (let i = 0; i < fails.length; i++) {
+            fails[i].className = "fail";
+        }
+    }
+</script>
+</html>
