@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
+    <title>U wordt doorgestuurd...</title>
     <style>
         @property --percentage {
             initial-value: 0%;
@@ -88,11 +88,19 @@
 
 	startLoading();
 
-	const submissionId = '{{1.submission_id}}'; // The submission ID of the jotform submission
-	const executionId = '{{executionId}}'; // The execution ID of the jortform submission Make execution
-	const makeWebhookUrl = '{{var.input.Make_polling_url}}'; // Make Webhook URL for fetching tracking URL
+    const searchParams = new URLSearchParams(window.location.search);
 
-	startPollingForRedirectUrl();
+	const submissionId = searchParams.submission_id; // The submission ID of the jotform submission
+	const executionId = searchParams.execution_id; // The execution ID of the Make execution
+	const makeWebhookUrl = searchParams.make_polling_url; // Make Webhook URL for fetching tracking URL
+
+    if (!submission_id || !executionId || !makeWebhookUrl) {
+        fail();
+        return;
+    }
+    else {
+        startPollingForRedirectUrl();
+    }
 
     const maxAttempts = 3;
     let currentAttempt = 0;
@@ -123,7 +131,11 @@
 			if (currentAttempt < maxAttempts) {
 				startPollingForRedirectUrl();
 			}
-            else fail();
+            else {
+                clearInterval(loadingInterval);
+                console.log('this is taking longer than usual... refer to email for track&trace.');
+                fail();
+            }
 		});
 	}
 
@@ -132,8 +144,6 @@
 	}
 
     function fail() {
-        clearInterval(loadingInterval);
-        console.log('this is taking longer than usual... refer to email for track&trace.');
         document.getElementById('uitleg-text').className = "hide";
         var fails = document.getElementsByClassName('fail');
         for (let i = 0; i < fails.length; i++) {
