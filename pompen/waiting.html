@@ -40,7 +40,7 @@
             color: #333;
         }
         p.fail {
-            color: #F33;
+            color: rgb(46,0,139);
         }
         p.hide {
             display: none;
@@ -90,9 +90,9 @@
 
     const searchParams = new URLSearchParams(window.location.search);
 
-	const submissionId = searchParams.submission_id; // The submission ID of the jotform submission
-	const executionId = searchParams.execution_id; // The execution ID of the Make execution
-	const makeWebhookUrl = searchParams.make_polling_url; // Make Webhook URL for fetching tracking URL
+	const submissionId = searchParams.get('submission_id'); // The submission ID of the jotform submission
+	const executionId = searchParams.get('execution_id'); // The execution ID of the Make execution
+	const makeWebhookUrl = searchParams.get('make_polling_url'); // Make Webhook URL for fetching tracking URL
 
     if (!submissionId || !executionId || !makeWebhookUrl) {
         console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl, window.location);
