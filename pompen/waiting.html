@@ -95,7 +95,7 @@
 	const makeWebhookUrl = searchParams.make_polling_url; // Make Webhook URL for fetching tracking URL
 
     if (!submissionId || !executionId || !makeWebhookUrl) {
-        console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl);
+        console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl, window.location);
         fail();
     }
     else {
