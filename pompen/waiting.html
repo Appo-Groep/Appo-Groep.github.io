@@ -28,7 +28,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: conic-gradient(#3498db 0% var(--percentage), #f3f3f3 0% 0%);
+            background: conic-gradient(rgb(46,0,139) 0% var(--percentage), #f3f3f3 0% 0%);
             transition: --percentage 5s linear;
             margin: 0 auto 20px;
         }
@@ -40,7 +40,7 @@
             color: #333;
         }
         p.fail {
-            color: rgb(46,0,139);
+            color: rgb(139, 0, 0);
         }
         p.hide {
             display: none;
@@ -95,7 +95,7 @@
 	const makeWebhookUrl = searchParams.get('make_polling_url'); // Make Webhook URL for fetching tracking URL
 
     if (!submissionId || !executionId || !makeWebhookUrl) {
-        console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl, window.location);
+        console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl);
         fail();
     }
     else {
