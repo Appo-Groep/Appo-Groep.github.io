@@ -29,7 +29,7 @@
             height: 120px;
             border-radius: 50%;
             background: conic-gradient(rgb(46,0,139) 0% var(--percentage), #f3f3f3 0% 0%);
-            transition: --percentage 5s linear;
+            transition: --percentage 10s linear;
             margin: 0 auto 20px;
         }
         .loaded {
@@ -102,7 +102,7 @@
         startPollingForRedirectUrl();
     }
 
-    const maxAttempts = 3;
+    const maxAttempts = 5;
     let currentAttempt = 0;
 
 	function startPollingForRedirectUrl() {
