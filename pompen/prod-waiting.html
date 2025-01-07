@@ -66,6 +66,34 @@
 </body>
 
 <script type="text/javascript">
+    const searchParams = new URLSearchParams(window.location.search);
+
+	const reqIdentifier = '{{1.identifier}}'; // The identifier to find the ACE Transport request
+	const executionId = '{{1.executionId}}'; // The execution ID of the Make execution
+	const makeWebhookUrl = '{{var.input.Make_polling_url}}'; // Make Webhook URL for fetching tracking URL
+
+    const appoRedirectCookieName = 'x-appo-redirect';
+    let appoRedirectCookieId = 1;
+
+    function checkPreviousSuccessfulRedirects() {
+        const redirectCookies = getAppoRedirectCookies(`(${appoRedirectCookieName}-([0-9]+))`);
+
+        console.log(`Detected ${redirectCookies.length} previous traces on this computer:`, redirectCookies);
+
+        for (const redirectCookie of redirectCookies) {
+            if (redirectCookie.value.identifier === reqIdentifier) {
+                redirect(redirectCookie.value.tracking_url);
+                return;
+            }
+        }
+
+        appoRedirectCookieId = Math.max(...redirectCookies.map(x => x.id)) + 1;
+
+        console.log('Current trace has not been detected on this computer.');
+    }
+
+    checkPreviousSuccessfulRedirects();
+
 	var loadingInterval;
     function startLoading() {
 		loadingInterval = setInterval(() => {
@@ -88,14 +116,8 @@
 
 	startLoading();
 
-    const searchParams = new URLSearchParams(window.location.search);
-
-	const submissionId = '{{1.submission_id}}'; // The submission ID of the jotform submission
-	const executionId = '{{executionId}}'; // The execution ID of the Make execution
-	const makeWebhookUrl = '{{var.input.Make_polling_url}}'; // Make Webhook URL for fetching tracking URL
-
-    if (!submissionId || !executionId || !makeWebhookUrl) {
-        console.log('Invalid submission: ', submissionId, executionId, makeWebhookUrl);
+    if (!reqIdentifier || !executionId || !makeWebhookUrl) {
+        console.log('Invalid request identifier: ', reqIdentifier, executionId, makeWebhookUrl);
         fail();
     }
     else {
@@ -115,11 +137,12 @@
 		fetch(makeWebhookUrl, {
             method: "POST",
             headers: {'Content-Type': 'application/json'}, 
-            body: JSON.stringify({ submissionId, executionId })
+            body: JSON.stringify({ identifier: reqIdentifier, executionId })
 		}).then(async (response) => {
             const json = await response.text();
             const data = JSON.parse(json);
 			if (data.tracking_url) {
+                setCookie(appoRedirectCookieName, { identifier: reqIdentifier, tracking_url: data.tracking_url }, 14);
 				redirect(data.tracking_url);
 			}
 			else if (currentAttempt < maxAttempts) {
@@ -149,6 +172,36 @@
         for (let i = 0; i < fails.length; i++) {
             fails[i].className = "fail";
         }
+    }
+
+    function getAppoRedirectCookies(name) {
+        let value = document.cookie;
+        let matches = value.matchAll(`${name}=(.*?);`);
+
+        const results = [];
+        for (const match of matches) {
+            results.push({
+                name: match[1],
+                id: parseInt(match[2]),
+                value: JSON.parse(atob(match[3])),
+            });
+        }
+
+        return results;
+    }
+
+    function getCookie(name) {
+        let value = `; ${document.cookie}`;
+        let parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        if (typeof cvalue === "object") cvalue = btoa(JSON.stringify(cvalue));
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        let expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
     }
 </script>
 </html>
